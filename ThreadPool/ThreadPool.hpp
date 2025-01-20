@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <atomic>
 
+#define MOVE_OPERATOR false
+
 class ThreadPool 
 {
     public:
@@ -43,12 +45,33 @@ class ThreadPool
         */
         ThreadPool(std::size_t);
 
-        ThreadPool(const ThreadPool &)              = delete;
-        ThreadPool & operator=(const ThreadPool &)  = delete;
-        ThreadPool & operator=(ThreadPool &)        = delete;
+        /**
+         * @brief 禁用拷贝构造。
+        */
+        ThreadPool(const ThreadPool &) = delete;
 
+        /**
+         * @brief 禁用拷贝赋值。
+        */
+        ThreadPool & operator=(const ThreadPool &) = delete;
+
+        /**
+         * @brief 禁用拷贝赋值。
+        */
+        ThreadPool & operator=(ThreadPool &) = delete;
+
+// 真的有必要实现移动操作吗？
+#if MOVE_OPERATOR
+        /**
+         * @brief 移动构造函数。
+        */
         ThreadPool(ThreadPool &&) noexcept;
+
+        /**
+         * @brief 移动赋值。
+        */
         ThreadPool & operator=(ThreadPool &&) noexcept;
+#endif
 
         /**
          * @brief           向线程池提交任务。
@@ -65,6 +88,15 @@ class ThreadPool
         template<class F, class... Args>
         std::future<typename std::result_of<F(Args...)>::type>
         submit(F && f, Args && ...args);
+
+/**
+ * @brief 观察线程池的资源状态，调试时用。
+*/
+#ifdef DEBUG
+        bool isWorkersEmpty(void) const { return this->workers.empty(); }
+        bool isTasksEmpty(void)   const { return this->tasks.empty(); }
+        bool isStop(void)         const { return this->stop.load(); }
+#endif
 
 
         /**
@@ -103,7 +135,7 @@ void ThreadPool::launchThread(void)
     }
 }
 
-inline ThreadPool::ThreadPool(std::size_t threads) : stop{false}
+ThreadPool::ThreadPool(std::size_t threads) : stop{false}
 {
     // 放飞线程们
     for(size_t i = 0;i < threads; ++i) {
@@ -111,56 +143,93 @@ inline ThreadPool::ThreadPool(std::size_t threads) : stop{false}
     }
 }
 
-inline ThreadPool::ThreadPool(ThreadPool && other) noexcept
-: workers(std::move(other.workers)), tasks(std::move(other.tasks)), stop(other.stop.load())
+#if MOVE_OPERATOR   // 这样的策略可行吗？死锁的问题解决不掉。
+ThreadPool::ThreadPool(ThreadPool && other) noexcept
+: workers(std::move(other.workers)), 
+  tasks(std::move(other.tasks)), stop(other.stop.load())
 {
-    other.stop.store(true);
+    {
+        std::unique_lock<std::mutex> lock(other.queue_mutex);
+        other.stop.store(true);
+        other.condition.notify_all();
+    }
+
+    for (std::thread & worker : other.workers) 
+    {
+        if (worker.joinable()) {
+            worker.join();
+        }
+    }
+
+    other.workers.clear();
+    other.tasks = std::queue<Task>{};
 }
+
 
 ThreadPool & ThreadPool::operator=(ThreadPool && other) noexcept
 {
     if (this != &other) 
     {
+        /**
+         * 1. 首先停止本池的线程执行队列中的任务，
+         *    并等待本池当前的线程正在执行的任务结束。 
+        */
         {
             std::unique_lock<std::mutex> lock{this->queue_mutex};
-            
             this->stop.store(true);
             this->condition.notify_all();
         }
 
-        for (std::thread & worker : this->workers) {
+        for (std::thread & worker : this->workers) 
+        {
             if (worker.joinable()) {
                 worker.join();
             }
         }
 
-        this->workers.clear();
-
+        /**
+         * 2. 清空本线程池和本池中的任务队列。 
+        */
         {
             std::unique_lock<std::mutex> lock{this->queue_mutex};
-
+            this->workers.clear();
             while (!this->tasks.empty()) { this->tasks.pop(); }
+            this->stop.store(false);
         }
 
+        /**
+         * 3. 转移 other 线程池资源至本池，
+         *    并等待 other 线程池的任务全部结束后，
+         *    清空 other 线程池的线程和任务队列。
+        */
         {
-            std::unique_lock<std::mutex> lock{this->queue_mutex, std::defer_lock};
-            std::unique_lock<std::mutex> otherLock{other.queue_mutex, std::defer_lock};
+            std::unique_lock<std::mutex> otherLock{other.queue_mutex};
+            std::unique_lock<std::mutex> selfLock{this->queue_mutex, std::defer_lock};
 
-            std::lock(lock, otherLock);
+            std::lock(selfLock, otherLock);
 
             this->workers = std::move(other.workers);
             this->tasks   = std::move(other.tasks);
+            this->stop.store(other.stop.load());
+
+            other.stop.store(true);
+            other.condition.notify_all();
+
+            for (std::thread & worker : other.workers) 
+            {
+                if (worker.joinable()) {
+                    worker.join();
+                }
+            }
+
+            other.workers.clear();
+            while (!other.tasks.empty()) { other.tasks.pop(); }
         }
-
-        this->stop.store(other.stop.load());
-        other.stop.store(true);
-
-        this->condition.notify_all();
-        other.condition.notify_all();
     }
 
     return *this;
 }
+#endif
 
 template<class F, class... Args>
 std::future<typename std::result_of<F(Args...)>::type>
