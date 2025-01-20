@@ -14,9 +14,9 @@ using namespace fmt;
 /**
  * @brief 返回当前时间字符串（例：[2024-11-24 16:11:35.279]）
 */
-static std::string CurrentTime(void);
+std::string CurrentTime(void);
 
-static std::string CurrentTime(void)
+std::string CurrentTime(void)
 {
     using namespace std::chrono;
 
