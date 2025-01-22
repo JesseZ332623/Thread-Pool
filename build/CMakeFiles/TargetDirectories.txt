@@ -1,0 +1,3 @@
+F:/Thread-Pool/build/CMakeFiles/Test_ParallelAccumulate.dir
+F:/Thread-Pool/build/CMakeFiles/edit_cache.dir
+F:/Thread-Pool/build/CMakeFiles/rebuild_cache.dir
