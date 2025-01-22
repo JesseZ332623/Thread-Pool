@@ -38,40 +38,25 @@ class ThreadPool
         */
         void launchThread(void);
 
-    public:
-
         /**
          * @brief 构造函数，创建 n 个线程并放飞。
         */
         ThreadPool(std::size_t);
 
-        /**
-         * @brief 禁用拷贝构造。
-        */
-        ThreadPool(const ThreadPool &) = delete;
+        ThreadPool(const ThreadPool &)              = delete;
+        ThreadPool(ThreadPool &&)                   = delete;
+        ThreadPool & operator=(const ThreadPool &)  = delete;
+        ThreadPool & operator=(ThreadPool &&)       = delete;
 
-        /**
-         * @brief 禁用拷贝赋值。
-        */
-        ThreadPool & operator=(const ThreadPool &) = delete;
+    private:
+        static std::unique_ptr<ThreadPool> Instance;
+        static std::once_flag              Flag;
 
+    public:
         /**
-         * @brief 禁用拷贝赋值。
+         * @brief 单例模式，构造并返回全局唯一的线程池。
         */
-        ThreadPool & operator=(ThreadPool &) = delete;
-
-// 真的有必要实现移动操作吗？
-#if MOVE_OPERATOR
-        /**
-         * @brief 移动构造函数。
-        */
-        ThreadPool(ThreadPool &&) noexcept;
-
-        /**
-         * @brief 移动赋值。
-        */
-        ThreadPool & operator=(ThreadPool &&) noexcept;
-#endif
+        static ThreadPool & ThreadPoolCreate(std::size_t __n);
 
         /**
          * @brief           向线程池提交任务。
@@ -86,7 +71,7 @@ class ThreadPool
          *                  允许调用者等待任务的结束。
         */
         template<class F, class... Args>
-        std::future<typename std::result_of<F(Args...)>::type>
+        std::future<std::invoke_result_t<F, Args...>>
         submit(F && f, Args && ...args);
 
 /**
@@ -97,7 +82,6 @@ class ThreadPool
         bool isTasksEmpty(void)   const { return this->tasks.empty(); }
         bool isStop(void)         const { return this->stop.load(); }
 #endif
-
 
         /**
          * @brief 析构函数，发出停止执行任务的指示，
@@ -135,6 +119,9 @@ void ThreadPool::launchThread(void)
     }
 }
 
+std::unique_ptr<ThreadPool> ThreadPool::Instance{};
+std::once_flag ThreadPool::Flag{};
+
 ThreadPool::ThreadPool(std::size_t threads) : stop{false}
 {
     // 放飞线程们
@@ -143,103 +130,24 @@ ThreadPool::ThreadPool(std::size_t threads) : stop{false}
     }
 }
 
-#if MOVE_OPERATOR   // 这样的策略可行吗？死锁的问题解决不掉。
-ThreadPool::ThreadPool(ThreadPool && other) noexcept
-: workers(std::move(other.workers)), 
-  tasks(std::move(other.tasks)), stop(other.stop.load())
+ThreadPool & ThreadPool::ThreadPoolCreate(std::size_t __n)
 {
-    {
-        std::unique_lock<std::mutex> lock(other.queue_mutex);
-        other.stop.store(true);
-        other.condition.notify_all();
-    }
+    std::call_once(
+        Flag, [&](void){ Instance.reset(new ThreadPool{__n}); }
+    );
 
-    for (std::thread & worker : other.workers) 
-    {
-        if (worker.joinable()) {
-            worker.join();
-        }
-    }
-
-    other.workers.clear();
-    other.tasks = std::queue<Task>{};
+    return *Instance;
 }
-
-
-ThreadPool & ThreadPool::operator=(ThreadPool && other) noexcept
-{
-    if (this != &other) 
-    {
-        /**
-         * 1. 首先停止本池的线程执行队列中的任务，
-         *    并等待本池当前的线程正在执行的任务结束。 
-        */
-        {
-            std::unique_lock<std::mutex> lock{this->queue_mutex};
-            this->stop.store(true);
-            this->condition.notify_all();
-        }
-
-        for (std::thread & worker : this->workers) 
-        {
-            if (worker.joinable()) {
-                worker.join();
-            }
-        }
-
-        /**
-         * 2. 清空本线程池和本池中的任务队列。 
-        */
-        {
-            std::unique_lock<std::mutex> lock{this->queue_mutex};
-            this->workers.clear();
-            while (!this->tasks.empty()) { this->tasks.pop(); }
-            this->stop.store(false);
-        }
-
-        /**
-         * 3. 转移 other 线程池资源至本池，
-         *    并等待 other 线程池的任务全部结束后，
-         *    清空 other 线程池的线程和任务队列。
-        */
-        {
-            std::unique_lock<std::mutex> otherLock{other.queue_mutex};
-            std::unique_lock<std::mutex> selfLock{this->queue_mutex, std::defer_lock};
-
-            std::lock(selfLock, otherLock);
-
-            this->workers = std::move(other.workers);
-            this->tasks   = std::move(other.tasks);
-            this->stop.store(other.stop.load());
-
-            other.stop.store(true);
-            other.condition.notify_all();
-
-            for (std::thread & worker : other.workers) 
-            {
-                if (worker.joinable()) {
-                    worker.join();
-                }
-            }
-
-            other.workers.clear();
-            while (!other.tasks.empty()) { other.tasks.pop(); }
-        }
-    }
-
-    return *this;
-}
-#endif
 
 template<class F, class... Args>
-std::future<typename std::result_of<F(Args...)>::type>
+std::future<std::invoke_result_t<F, Args...>>
 ThreadPool::submit(F && f, Args &&... args)
 {
     /**
      * std::result_of<> 萃取可调用对象 F 在 Args... 参数下的返回值类型，
      * 它在 C++ 17 被 std::invoke_result_t<> 代替，在 C++ 20 被移除。
     */
-    using return_type = typename std::result_of<F(Args...)>::type;
+    using return_type = std::invoke_result_t<F, Args...>;
 
     /**
      * 使用 std::bind() 绑定可调用对象的参数，
