@@ -12,8 +12,6 @@
 #include <stdexcept>
 #include <atomic>
 
-#define MOVE_OPERATOR false
-
 class ThreadPool 
 {
     public:
