@@ -13,7 +13,8 @@
 volatile sig_atomic_t DONE = false;
 
 // 线程池实例化在全局，默认只放飞本 CPU 最大能支持的物理线程数。
-ThreadPool THREADPOOL{std::thread::hardware_concurrency()};
+ThreadPool & THREADPOOL 
+    = ThreadPool::ThreadPoolCreate(std::thread::hardware_concurrency());
 
 /**
  * @brief 强制结束程序时要做的任务。 
@@ -156,8 +157,6 @@ int main(int argc, char const *argv[])
 
         if (DONE) { break; }
     }
-
-    THREADPOOL.~ThreadPool();
 
     print(SUCCESS_STYLE, "[DONE]\n");
 
