@@ -10,6 +10,9 @@
 #include "./include/randomGenerator.hpp"
 #include "../ThreadPool/ThreadPool.hpp"
 
+#undef __argc
+#undef __argv
+
 volatile sig_atomic_t DONE = false;
 
 // 线程池实例化在全局，默认只放飞本 CPU 最大能支持的物理线程数。
@@ -30,6 +33,25 @@ void exitHandle(int __signal)
 }
 
 /**
+ * @brief 主函数参数检查
+*/
+int argumentCheck(const int __argc, char const * __argv[]) 
+{
+    if (__argc != 2) {
+        exit(EXIT_FAILURE);
+    }
+
+    try {
+        return std::stoi(__argv[1]);
+    }
+    catch (const std::exception & except) 
+    {
+        print("{}\n", except.what());
+        exit(EXIT_FAILURE);
+    }
+}
+
+/**
  * @brief 并行的计算一个容器的全体元素之和。
 */
 template <typename Iterator, typename Type>
@@ -38,6 +60,10 @@ Type parallelAccumulate(Iterator first, Iterator last, Type init)
     std::size_t length = std::distance(first, last);    // 计算容器的元素数
 
     if (!length) { return init; }   // 对于空容器，直接返回初始值就行
+
+    if (length <= 10000) { 
+        return std::accumulate<Iterator, Type>(first, last, init); 
+    }
 
     // 动态的计算块大小
     const std::size_t blockSize 
@@ -94,6 +120,8 @@ int main(int argc, char const *argv[])
 {
     system("cls");
 
+    const int LoopAmount = argumentCheck(argc, argv);
+
     std::signal(SIGINT, exitHandle);
 
     std::vector<int64_t> numberList(150000000);
@@ -103,12 +131,12 @@ int main(int argc, char const *argv[])
     int64_t concurrencyRes{};
     int64_t stlRes{};
 
-    uint64_t concurrencyTime{};
-    uint64_t stlTime{};
+    std::vector<uint64_t> concurrencyTime(LoopAmount);
+    std::vector<uint64_t> stlTime(LoopAmount);
 
     auto fillData = [&](void) 
     {
-        for (int index = 0; index < 150000000; ++index) {
+        for (int index = 0; index < numberList.size(); ++index) {
             numberList[index] = randomGen.rand();
         }
     };
@@ -127,7 +155,7 @@ int main(int argc, char const *argv[])
         );
     };
 
-    for (int times = 0; times < 10; ++times)
+    for (int times = 0; times < LoopAmount; ++times)
     {
         print(
             NOTIFY_STYLE, "{} Test No. [{}], Fill {} data, cost: [{}] ms.\n\n", 
@@ -135,15 +163,15 @@ int main(int argc, char const *argv[])
             functionExecuteTime(fillData).count()
         );
 
-        concurrencyTime = functionExecuteTime(accumulateConcurrency).count();
-        stlTime         = functionExecuteTime(stlAccumulate).count();
+        concurrencyTime[times] = functionExecuteTime(accumulateConcurrency).count();
+        stlTime[times]         = functionExecuteTime(stlAccumulate).count();
         
         print(
             SUCCESS_STYLE, 
             "parallelAccumulate() result = {} cost [{}] ms.\n"
             "std::accumulate()    result = {} cost [{}] ms.\n",
-            concurrencyRes, concurrencyTime,
-            stlRes, stlTime
+            concurrencyRes, concurrencyTime[times],
+            stlRes, stlTime[times]
         );
 
         (concurrencyRes == stlRes) 
@@ -158,7 +186,15 @@ int main(int argc, char const *argv[])
         if (DONE) { break; }
     }
 
-    print(SUCCESS_STYLE, "[DONE]\n");
+    print(
+        SUCCESS_STYLE, 
+        "parallelAccumulate() took an average of [{}] ms\n"
+        "std::accumulate()    took an average of [{}] ms.\n\n",
+        parallelAccumulate(concurrencyTime.begin(), concurrencyTime.end(), uint64_t{}) / concurrencyTime.size(),
+        parallelAccumulate(stlTime.begin(), stlTime.end(), uint64_t{}) / stlTime.size()
+    );
+
+    print(SUCCESS_STYLE, "{} [DONE]\n", CurrentTime());
 
     return EXIT_SUCCESS;
 }
