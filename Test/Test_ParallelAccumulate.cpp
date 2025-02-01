@@ -37,7 +37,10 @@ void exitHandle(int __signal)
 */
 int argumentCheck(const int __argc, char const * __argv[]) 
 {
-    if (__argc != 2) {
+    if (__argc != 2) 
+    {
+        print(ERROR_STYLE, "Test_ParallelAccumulate <test-usage-amount>\n\n");
+        print(ERROR_STYLE, "[DONE]\n");
         exit(EXIT_FAILURE);
     }
 
@@ -136,7 +139,7 @@ int main(int argc, char const *argv[])
 
     auto fillData = [&](void) 
     {
-        for (int index = 0; index < numberList.size(); ++index) {
+        for (std::size_t index = 0; index < numberList.size(); ++index) {
             numberList[index] = randomGen.rand();
         }
     };
