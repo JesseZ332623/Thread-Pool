@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\Test_ParallelAccumulate.dir/objects.a
-C:\PROGRA~1\msys64\mingw64\bin\ar.exe qc CMakeFiles\Test_ParallelAccumulate.dir/objects.a @CMakeFiles\Test_ParallelAccumulate.dir\objects1.rsp
-C:\PROGRA~1\msys64\mingw64\bin\g++.exe  -O3 -ffunction-sections -fdata-sections -flto -s -std=c++17 -Wall -g  -Wl,--gc-sections -flto -Wl,--whole-archive CMakeFiles\Test_ParallelAccumulate.dir/objects.a -Wl,--no-whole-archive -o F:\Thread-Pool\bin\Test_ParallelAccumulate.exe -Wl,--out-implib,libTest_ParallelAccumulate.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Test_ParallelAccumulate.dir\linkLibs.rsp
