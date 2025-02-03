@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Test_ParallelAccumulate)
+project(Test_PollResize)
 
 # 设置 Boost 和 FMT 的根目录
 set(FMT_ROOT        "F:/fmt")
@@ -11,7 +11,7 @@ include_directories(
 # 添加库文件目录
 
 # 添加源文件
-set(SOURCES ./Test/Test_ParallelAccumulate.cpp)
+set(SOURCES ./Test/Test_PollResize.cpp)
 
 # 设置编译选项
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffunction-sections -fdata-sections -flto -s -std=c++17 -Wall")
@@ -19,10 +19,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffunction-sections -fdata-sections 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections -flto")
 
 # 添加可执行文件
-add_executable(Test_ParallelAccumulate ${SOURCES})
+add_executable(Test_PollResize ${SOURCES})
 
 # 设置运行时输出目录
-set_target_properties(Test_ParallelAccumulate PROPERTIES RUNTIME_OUTPUT_DIRECTORY "../bin")
+set_target_properties(Test_PollResize PROPERTIES RUNTIME_OUTPUT_DIRECTORY "../bin")
 
 # 链接 FMT 库
-target_link_libraries(Test_ParallelAccumulate PRIVATE ${FMT_ROOT}/lib/libfmtd.a)
+target_link_libraries(Test_PollResize PRIVATE ${FMT_ROOT}/lib/libfmtd.a)
