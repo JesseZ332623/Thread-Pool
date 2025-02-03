@@ -116,41 +116,41 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named Test_ParallelAccumulate
+# Target rules for targets named Test_PollResize
 
 # Build rule for target.
-Test_ParallelAccumulate: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Test_ParallelAccumulate
-.PHONY : Test_ParallelAccumulate
+Test_PollResize: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Test_PollResize
+.PHONY : Test_PollResize
 
 # fast build rule for target.
-Test_ParallelAccumulate/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/build
-.PHONY : Test_ParallelAccumulate/fast
+Test_PollResize/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/build
+.PHONY : Test_PollResize/fast
 
-Test/Test_ParallelAccumulate.obj: Test/Test_ParallelAccumulate.cpp.obj
-.PHONY : Test/Test_ParallelAccumulate.obj
+Test/Test_PollResize.obj: Test/Test_PollResize.cpp.obj
+.PHONY : Test/Test_PollResize.obj
 
 # target to build an object file
-Test/Test_ParallelAccumulate.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/Test/Test_ParallelAccumulate.cpp.obj
-.PHONY : Test/Test_ParallelAccumulate.cpp.obj
+Test/Test_PollResize.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/Test/Test_PollResize.cpp.obj
+.PHONY : Test/Test_PollResize.cpp.obj
 
-Test/Test_ParallelAccumulate.i: Test/Test_ParallelAccumulate.cpp.i
-.PHONY : Test/Test_ParallelAccumulate.i
+Test/Test_PollResize.i: Test/Test_PollResize.cpp.i
+.PHONY : Test/Test_PollResize.i
 
 # target to preprocess a source file
-Test/Test_ParallelAccumulate.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/Test/Test_ParallelAccumulate.cpp.i
-.PHONY : Test/Test_ParallelAccumulate.cpp.i
+Test/Test_PollResize.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/Test/Test_PollResize.cpp.i
+.PHONY : Test/Test_PollResize.cpp.i
 
-Test/Test_ParallelAccumulate.s: Test/Test_ParallelAccumulate.cpp.s
-.PHONY : Test/Test_ParallelAccumulate.s
+Test/Test_PollResize.s: Test/Test_PollResize.cpp.s
+.PHONY : Test/Test_PollResize.s
 
 # target to generate assembly for a file
-Test/Test_ParallelAccumulate.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/Test/Test_ParallelAccumulate.cpp.s
-.PHONY : Test/Test_ParallelAccumulate.cpp.s
+Test/Test_PollResize.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/Test/Test_PollResize.cpp.s
+.PHONY : Test/Test_PollResize.cpp.s
 
 # Help Target
 help:
@@ -160,10 +160,10 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
-	@echo ... Test_ParallelAccumulate
-	@echo ... Test/Test_ParallelAccumulate.obj
-	@echo ... Test/Test_ParallelAccumulate.i
-	@echo ... Test/Test_ParallelAccumulate.s
+	@echo ... Test_PollResize
+	@echo ... Test/Test_PollResize.obj
+	@echo ... Test/Test_PollResize.i
+	@echo ... Test/Test_PollResize.s
 .PHONY : help
 
 

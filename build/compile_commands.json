@@ -1,8 +1,8 @@
 [
 {
   "directory": "F:/Thread-Pool/build",
-  "command": "C:\\PROGRA~1\\msys64\\mingw64\\bin\\g++.exe    -O3 -ffunction-sections -fdata-sections -flto -s -std=c++17 -Wall -g -o CMakeFiles\\Test_ParallelAccumulate.dir\\Test\\Test_ParallelAccumulate.cpp.obj -c F:\\Thread-Pool\\Test\\Test_ParallelAccumulate.cpp",
-  "file": "F:/Thread-Pool/Test/Test_ParallelAccumulate.cpp",
-  "output": "CMakeFiles/Test_ParallelAccumulate.dir/Test/Test_ParallelAccumulate.cpp.obj"
+  "command": "C:\\PROGRA~1\\msys64\\mingw64\\bin\\g++.exe    -O3 -ffunction-sections -fdata-sections -flto -s -std=c++17 -Wall -g -o CMakeFiles\\Test_PollResize.dir\\Test\\Test_PollResize.cpp.obj -c F:\\Thread-Pool\\Test\\Test_PollResize.cpp",
+  "file": "F:/Thread-Pool/Test/Test_PollResize.cpp",
+  "output": "CMakeFiles/Test_PollResize.dir/Test/Test_PollResize.cpp.obj"
 }
 ]

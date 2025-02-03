@@ -62,7 +62,7 @@ CMAKE_BINARY_DIR = F:\Thread-Pool\build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/Test_ParallelAccumulate.dir/all
+all: CMakeFiles/Test_PollResize.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -70,34 +70,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/Test_ParallelAccumulate.dir/clean
+clean: CMakeFiles/Test_PollResize.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/Test_ParallelAccumulate.dir
+# Target rules for target CMakeFiles/Test_PollResize.dir
 
 # All Build rule for target.
-CMakeFiles/Test_ParallelAccumulate.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=F:\Thread-Pool\build\CMakeFiles --progress-num=1,2 "Built target Test_ParallelAccumulate"
-.PHONY : CMakeFiles/Test_ParallelAccumulate.dir/all
+CMakeFiles/Test_PollResize.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=F:\Thread-Pool\build\CMakeFiles --progress-num=1,2 "Built target Test_PollResize"
+.PHONY : CMakeFiles/Test_PollResize.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/Test_ParallelAccumulate.dir/rule: cmake_check_build_system
+CMakeFiles/Test_PollResize.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start F:\Thread-Pool\build\CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/Test_ParallelAccumulate.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/Test_PollResize.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start F:\Thread-Pool\build\CMakeFiles 0
-.PHONY : CMakeFiles/Test_ParallelAccumulate.dir/rule
+.PHONY : CMakeFiles/Test_PollResize.dir/rule
 
 # Convenience name for target.
-Test_ParallelAccumulate: CMakeFiles/Test_ParallelAccumulate.dir/rule
-.PHONY : Test_ParallelAccumulate
+Test_PollResize: CMakeFiles/Test_PollResize.dir/rule
+.PHONY : Test_PollResize
 
 # clean rule for target.
-CMakeFiles/Test_ParallelAccumulate.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_ParallelAccumulate.dir\build.make CMakeFiles/Test_ParallelAccumulate.dir/clean
-.PHONY : CMakeFiles/Test_ParallelAccumulate.dir/clean
+CMakeFiles/Test_PollResize.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Test_PollResize.dir\build.make CMakeFiles/Test_PollResize.dir/clean
+.PHONY : CMakeFiles/Test_PollResize.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
