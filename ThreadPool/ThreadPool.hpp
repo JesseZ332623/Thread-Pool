@@ -31,10 +31,16 @@ class ThreadPool
         std::atomic_bool            stop;               // 是否停止执行任务的指示
 
         /**
+         * 池中每一个线程的退出标志，需要注意的是 vector 对 bool 类型做了特殊化，
+         * 使用 bitmap 来管理，而不是单纯的数组。
+        */
+        std::vector<bool>           threadStop;         
+
+        /**
          * @brief 在线程池构造的时候，
          *        放飞的每一个线程要做的任务。
         */
-        void launchThread(void);
+        void launchThread(uint32_t);
 
         /**
          * @brief 构造函数，创建 n 个线程并放飞。
@@ -55,6 +61,11 @@ class ThreadPool
          * @brief 单例模式，构造并返回全局唯一的线程池。
         */
         static ThreadPool & ThreadPoolCreate(std::size_t __n);
+
+        /**
+         * @brief 重新设置线程池的线程数。
+        */
+        void resize(std::size_t __newSize);
 
         /**
          * @brief           向线程池提交任务。
@@ -88,7 +99,7 @@ class ThreadPool
         ~ThreadPool();
 };
 
-void ThreadPool::launchThread(void)
+void ThreadPool::launchThread(uint32_t __threadIndex)
 {
     while (true)
     {
@@ -102,11 +113,15 @@ void ThreadPool::launchThread(void)
              * 线程们会在此处阻塞。
             */
             this->condition.wait(
-                lock, [this](void) { return (this->stop || !this->tasks.empty()); }
+                lock, [this, __threadIndex](void) { 
+                    return (this->stop || this->threadStop[__threadIndex] || !this->tasks.empty()); 
+                }
             );
 
             // 在收到停止处理任务的指示并且任务队列中没有任务时，线程返回。
-            if (this->stop && this->tasks.empty()) { return; }
+            if ((this->stop || this->threadStop[__threadIndex]) && this->tasks.empty()) { 
+                return; 
+            }
 
             // 任务出队
             task = std::move(this->tasks.front());
@@ -122,9 +137,11 @@ std::once_flag ThreadPool::Flag{};
 
 ThreadPool::ThreadPool(std::size_t threads) : stop{false}
 {
+    this->threadStop.resize(threads);
+
     // 放飞线程们
-    for(size_t i = 0;i < threads; ++i) {
-        workers.emplace_back(ThreadPool::launchThread, this);
+    for(size_t i = 0; i < threads; ++i) {
+        workers.emplace_back(ThreadPool::launchThread, this, i);
     }
 }
 
@@ -135,6 +152,57 @@ ThreadPool & ThreadPool::ThreadPoolCreate(std::size_t __n)
     );
 
     return *Instance;
+}
+
+void ThreadPool::resize(std::size_t __newSize)
+{
+    if (__newSize > this->workers.size())   // 线程池扩容
+    {
+        /**
+         * 所做的事情很简单，上锁后往线程池（workers）加入新的线程，
+         * 并补上新线程的停止标志位。
+        */
+        std::scoped_lock<std::mutex> lock{this->queue_mutex};
+
+        for (std::size_t index = this->workers.size(); index < __newSize; ++index)
+        {
+            this->threadStop.push_back(false);
+            this->workers.emplace_back(
+                ThreadPool::launchThread, this, index
+            );
+        }
+    }
+    else if (__newSize < this->workers.size())  // 线程池收缩
+    {
+        {
+            /**
+             * 上锁后更新要停止的线程的标志位，并通知池中所有的线程起来检查标志位。
+            */
+            std::scoped_lock<std::mutex> lock{this->queue_mutex};
+
+            for (std::size_t index = __newSize; index < this->workers.size(); ++index)
+            {
+                this->threadStop[index] = true;
+            }
+
+            this->condition.notify_all();
+        }
+
+        // 等待多出的线程结束。
+        for (std::size_t index = __newSize; index < this->workers.size(); ++index)
+        {
+            if (this->workers[index].joinable()) {
+                this->workers[index].join();
+            }
+        }
+        
+        {
+            // 再次上锁，正式收缩线程池和停止标志位。
+            std::scoped_lock<std::mutex> lock{this->queue_mutex};
+            this->workers.resize(__newSize);
+            this->threadStop.resize(__newSize);
+        }
+    }
 }
 
 template<class F, class... Args>
