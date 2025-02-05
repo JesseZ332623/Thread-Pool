@@ -16,8 +16,7 @@
 volatile sig_atomic_t DONE = false;
 
 // 线程池实例化在全局，默认只放飞本 CPU 最大能支持的物理线程数。
-ThreadPool & THREADPOOL 
-    = ThreadPool::ThreadPoolCreate(std::thread::hardware_concurrency());
+ThreadPool THREADPOOL{std::thread::hardware_concurrency()};
 
 /**
  * @brief 强制结束程序时要做的任务。 
@@ -64,9 +63,7 @@ Type parallelAccumulate(Iterator first, Iterator last, Type init)
 
     if (!length) { return init; }   // 对于空容器，直接返回初始值就行
 
-    if (length <= 10000) { 
-        return std::accumulate<Iterator, Type>(first, last, init); 
-    }
+    if (length <= 10000) { return std::accumulate<Iterator, Type>(first, last, init); }
 
     // 动态的计算块大小
     const std::size_t blockSize 
