@@ -42,25 +42,25 @@ class ThreadPool
         */
         void launchThread(uint32_t);
 
+    public:
+
         /**
          * @brief 构造函数，创建 n 个线程并放飞。
         */
         ThreadPool(std::size_t);
 
-        ThreadPool(const ThreadPool &)              = delete;
-        ThreadPool(ThreadPool &&)                   = delete;
-        ThreadPool & operator=(const ThreadPool &)  = delete;
-        ThreadPool & operator=(ThreadPool &&)       = delete;
-
-    private:
-        static std::unique_ptr<ThreadPool> Instance;
-        static std::once_flag              Flag;
-
-    public:
         /**
-         * @brief 单例模式，构造并返回全局唯一的线程池。
+         * @brief 移动构造函数，转移本线程池至另一个实例。
         */
-        static ThreadPool & ThreadPoolCreate(std::size_t __n);
+        ThreadPool(ThreadPool &&);
+
+        /**
+         * @brief 移动构造运算符，转移本线程池至另一个实例。
+        */
+        ThreadPool & operator=(ThreadPool &&);
+
+        ThreadPool(const ThreadPool &)              = delete;
+        ThreadPool & operator=(const ThreadPool &)  = delete;
 
         /**
          * @brief 重新设置线程池的线程数。
@@ -132,9 +132,6 @@ void ThreadPool::launchThread(uint32_t __threadIndex)
     }
 }
 
-std::unique_ptr<ThreadPool> ThreadPool::Instance{};
-std::once_flag ThreadPool::Flag{};
-
 ThreadPool::ThreadPool(std::size_t threads) : stop{false}
 {
     this->threadStop.resize(threads);
@@ -143,15 +140,6 @@ ThreadPool::ThreadPool(std::size_t threads) : stop{false}
     for(size_t i = 0; i < threads; ++i) {
         workers.emplace_back(ThreadPool::launchThread, this, i);
     }
-}
-
-ThreadPool & ThreadPool::ThreadPoolCreate(std::size_t __n)
-{
-    std::call_once(
-        Flag, [&](void){ Instance.reset(new ThreadPool{__n}); }
-    );
-
-    return *Instance;
 }
 
 void ThreadPool::resize(std::size_t __newSize)
