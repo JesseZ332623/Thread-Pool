@@ -8,8 +8,7 @@
 #include "../ThreadPool/ThreadPool.hpp"
 
 // 线程池实例化在全局。
-ThreadPool & THREADPOOL 
-    = ThreadPool::ThreadPoolCreate(1);
+ThreadPool THREADPOOL{7};
 
 int threadTask(std::vector<int> & __numList, RandomGenerator<size_t> & __randGen, size_t __amount);
 void ThreadPoolResetTest(size_t __testTimes);
