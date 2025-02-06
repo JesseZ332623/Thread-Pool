@@ -25,7 +25,7 @@ class ThreadPool
         std::vector<std::thread>    workers;            // 线程池
         std::queue<Task>            tasks;              // 任务队列
         
-        std::mutex                  queue_mutex;             
+        mutable std::mutex          queue_mutex;            
         std::condition_variable     condition;
 
         std::atomic_bool            stop;               // 是否停止执行任务的指示
@@ -76,7 +76,7 @@ class ThreadPool
         /**
          * @brief 当前池中的线程数。 
         */
-        std::size_t size(void);
+        std::size_t size(void) const;
 
         /**
          * @brief           向线程池提交任务。
@@ -157,7 +157,7 @@ ThreadPool::ThreadPool(std::size_t threads) noexcept : stop{false}
 
     // 放飞线程们
     for(size_t i = 0; i < threads; ++i) {
-        this->workers.emplace_back(ThreadPool::launchThread, this, i);
+        this->workers.emplace_back(&ThreadPool::launchThread, this, i);
     }
 }
 
@@ -252,7 +252,7 @@ void ThreadPool::resize(std::size_t __newSize)
         {
             this->threadStop.push_back(false);
             this->workers.emplace_back(
-                ThreadPool::launchThread, this, index
+                &ThreadPool::launchThread, this, index
             );
         }
     }
@@ -289,7 +289,7 @@ void ThreadPool::resize(std::size_t __newSize)
     }
 }
 
-inline std::size_t ThreadPool::size(void)
+inline std::size_t ThreadPool::size(void) const
 {
     std::unique_lock<std::mutex> lock{this->queue_mutex};
     return this->workers.size();
