@@ -13,7 +13,7 @@ void TestMoveAssignment(void);
 
 int main(int argc, char const *argv[])
 {
-    system("cls");
+    if (system("clear")) {}
     
     TestMoveConstruct();
     TestMoveAssignment();
