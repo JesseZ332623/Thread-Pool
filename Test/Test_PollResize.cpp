@@ -49,7 +49,7 @@ void ThreadPoolResetTest(size_t __testTimes)
             index + 1, poolSize
         );
 
-        if (poolSize == 9)
+        if (poolSize == std::thread::hardware_concurrency() / 2)
         {
             results.emplace_back(
                 THREADPOOL.submit(threadTask, 
