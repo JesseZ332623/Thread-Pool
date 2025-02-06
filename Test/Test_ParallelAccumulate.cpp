@@ -118,7 +118,7 @@ Type parallelAccumulate(Iterator first, Iterator last, Type init)
 
 int main(int argc, char const *argv[])
 {
-    system("cls");
+    if (system("clear")) {}
 
     const int LoopAmount = argumentCheck(argc, argv);
 
